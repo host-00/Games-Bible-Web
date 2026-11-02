@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Library</title>
+<style>
+  :root{
+    --bg:#0b0d12;
+    --bg-soft:#10141d;
+    --card:#151a24;
+    --border:#232a38;
+    --txt:#e8ecf5;
+    --muted:#8b95a9;
+    --accent:#7c5cff;
+    --accent-2:#22d3ee;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{height:100%;}
+
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:
+      radial-gradient(900px 500px at 15% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(800px 500px at 95% 0%, rgba(34,211,238,.12), transparent 55%),
+      var(--bg);
+    background-attachment:fixed;
+    color:var(--txt);
+    min-height:100vh;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:16px 24px;
+    background:rgba(11,13,18,.75);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:800;
+    font-size:1.15rem;
+    letter-spacing:.5px;
+    white-space:nowrap;
+  }
+
+  .logo .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 14px var(--accent);
+  }
+
+  .logo span{
+    background:linear-gradient(135deg,#fff, #b9b3ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .search-wrap{
+    position:relative;
+    flex:1;
+    min-width:220px;
+    max-width:480px;
+    margin-left:auto;
+  }
+
+  .search-wrap svg{
+    position:absolute;
+    left:14px;top:50%;
+    transform:translateY(-50%);
+    opacity:.5;
+    pointer-events:none;
+  }
+
+  #busca{
+    width:100%;
+    padding:12px 16px 12px 42px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--bg-soft);
+    color:var(--txt);
+    font-size:.92rem;
+    font-family:inherit;
+    outline:none;
+    transition:.2s;
+  }
+
+  #busca::placeholder{color:var(--muted);}
+
+  #busca:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(124,92,255,.18);
+  }
+
+  /* ---------- CONTEÚDO ---------- */
+  main{
+    padding:26px 24px 60px;
+    max-width:1600px;
+    margin:0 auto;
+  }
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+
+  .section-head h2{
+    margin:0;
+    font-size:1.05rem;
+    font-weight:700;
+    letter-spacing:.3px;
+  }
+
+  .count{
+    font-size:.8rem;
+    color:var(--muted);
+    background:var(--bg-soft);
+    border:1px solid var(--border);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+
+  /* ---------- GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(165px, 1fr));
+    gap:18px;
+  }
+
+  .card{
+    all:unset;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    border-radius:var(--radius);
+    background:var(--card);
+    border:1px solid var(--border);
+    overflow:hidden;
+    transition:transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    position:relative;
+  }
+
+  .card:hover,
+  .card:focus-visible{
+    transform:translateY(-6px);
+    border-color:rgba(124,92,255,.65);
+    box-shadow:0 14px 34px -12px rgba(124,92,255,.55);
+  }
+
+  .card:active{transform:translateY(-2px);}
+
+  .cover{
+    position:relative;
+    aspect-ratio:3/4;
+    background:linear-gradient(135deg,#1d2331,#2a2140 60%,#1a2c38);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .cover img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .35s ease, filter .35s ease;
+  }
+
+  .card:hover .cover img{
+    transform:scale(1.07);
+    filter:brightness(.72);
+  }
+
+  .fallback{
+    font-size:2.6rem;
+    font-weight:800;
+    color:rgba(255,255,255,.18);
+    user-select:none;
+  }
+
+  .play{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    opacity:0;
+    transition:opacity .25s ease;
+    z-index:2;
+  }
+
+  .play i{
+    width:54px;height:54px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    box-shadow:0 8px 24px rgba(124,92,255,.5);
+    color:#fff;
+    font-style:normal;
+    font-size:1rem;
+    padding-left:3px;
+  }
+
+  .card:hover .play{opacity:1;}
+
+  .info{
+    padding:11px 12px 13px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .info h3{
+    margin:0;
+    font-size:.86rem;
+    font-weight:600;
+    line-height:1.3;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .tag{
+    align-self:flex-start;
+    font-size:.66rem;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    font-weight:700;
+    color:#b9b3ff;
+    background:rgba(124,92,255,.14);
+    border:1px solid rgba(124,92,255,.28);
+    padding:2px 8px;
+    border-radius:999px;
+  }
+
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--muted);
+    padding:60px 0;
+    font-size:.95rem;
+  }
+
+  /* ---------- MODAL / EMBED ---------- */
+  .modal{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:none;
+    flex-direction:column;
+    background:rgba(6,8,12,.92);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+
+  .modal.aberto{display:flex;}
+
+  .modal-bar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 14px;
+    background:rgba(16,20,29,.9);
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+
+  .modal-bar .titulo{
+    font-size:.9rem;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    flex:1;
+    min-width:0;
+  }
+
+  .btn-ico{
+    all:unset;
+    cursor:pointer;
+    width:38px;height:38px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--bg-soft);
+    color:var(--txt);
+    font-size:.95rem;
+    transition:.18s;
+    flex-shrink:0;
+  }
+
+  .btn-ico:hover{
+    background:#1d2432;
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  .btn-ico.fechar:hover{
+    background:#e5484d;
+    border-color:#e5484d;
+  }
+
+  .modal-body{
+    position:relative;
+    flex:1;
+    min-height:0;
+    background:#000;
+  }
+
+  #frame{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+    background:#000;
+  }
+
+  .loader{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    background:#080a0f;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity .3s;
+    z-index:2;
+  }
+
+  .loader.ativo{opacity:1;}
+
+  .spinner{
+    width:44px;height:44px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,.12);
+    border-top-color:var(--accent);
+    border-right-color:var(--accent-2);
+    animation:spin .8s linear infinite;
+  }
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- RESPONSIVO ---------- */
+  @media (max-width:640px){
+    header{padding:12px 14px;gap:12px;}
+    main{padding:18px 14px 50px;}
+    .grid{grid-template-columns:repeat(auto-fill, minmax(132px,1fr)); gap:12px;}
+    .logo{font-size:1rem;}
+    .modal-bar .titulo{font-size:.8rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="dot"></span><span>GAME LIBRARY</span></div>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+    </svg>
+    <input id="busca" type="search" placeholder="Buscar jogo..." autocomplete="off">
+  </div>
+</header>
+
+<main>
+  <div class="section-head">
+    <h2>Todos os jogos</h2>
+    <span class="count" id="contador">0 jogos</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- ===== MODAL DE EMBED ===== -->
+<div class="modal" id="modal">
+  <div class="modal-bar">
+    <div class="titulo" id="modalTitulo">Jogo</div>
+
+    <button class="btn-ico" id="btnRecarregar" title="Recarregar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>
+      </svg>
+    </button>
+
+    <button class="btn-ico" id="btnNovaAba" title="Abrir em nova aba">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+      </svg>
+    </button>
+
+    <button class="btn-ico" id="btnTelaCheia" title="Tela cheia">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/>
+      </svg>
+    </button>
+
+    <button class="btn-ico fechar" id="btnFechar" title="Fechar (Esc)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div class="loader ativo" id="loader"><div class="spinner"></div></div>
+    <iframe id="frame"
+            title="Jogo"
+            allowfullscreen
+            allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope; clipboard-read; clipboard-write; encrypted-media"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   👇 EDITE AQUI: ADICIONE SEUS JOGOS
+   ---------------------------------------------------------
+   titulo : nome que aparece no card
+   cover  : URL da imagem de capa (pode ser link externo ou local)
+   link   : URL que será carregada dentro do iframe (embed)
+   tag    : (opcional) categoria exibida abaixo do nome
+   ========================================================= */
+const JOGOS = [
+  {
+    titulo: "Underground 2 Revived",
+    cover:  "https://coverproject.sfo2.cdn.digitaloceanspaces.com/playstation_2/ps2_needforspeedunderground2_de.jpg",
+    link:   "https://nfsu2.xyz/",
+    tag:    "Ação"
+  },
+  {
+    titulo: "Nome do Jogo 2",
+    cover:  "https://via.placeholder.com/300x400/1d2331/22d3ee?text=COVER+2",
+    link:   "https://exemplo.com/jogo2",
+    tag:    "Puzzle"
+  },
+  {
+    titulo: "Nome do Jogo 3",
+    cover:  "https://via.placeholder.com/300x400/1d2331/7c5cff?text=COVER+3",
+    link:   "https://exemplo.com/jogo3",
+    tag:    "Corrida"
+  },
+  {
+    titulo: "Nome do Jogo 4",
+    cover:  "https://via.placeholder.com/300x400/1d2331/22d3ee?text=COVER+4",
+    link:   "https://exemplo.com/jogo4",
+    tag:    "Aventura"
+  }
+];
+
+/* ================= LÓGICA (não precisa mexer) ================= */
+
+const grid       = document.getElementById('grid');
+const contador   = document.getElementById('contador');
+const busca      = document.getElementById('busca');
+
+const modal      = document.getElementById('modal');
+const frame      = document.getElementById('frame');
+const loader     = document.getElementById('loader');
+const modalTit  = document.getElementById('modalTitulo');
+
+let jogoAtual = null;
+
+/* --- Renderizar os cards --- */
+function render(lista){
+  grid.innerHTML = '';
+  contador.textContent = lista.length + (lista.length === 1 ? ' jogo' : ' jogos');
+
+  if(!lista.length){
+    grid.innerHTML = '<p class="empty">Nenhum jogo encontrado.</p>';
+    return;
+  }
+
+  lista.forEach(jogo => {
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.type = 'button';
+
+    card.innerHTML = `
+      <div class="cover">
+        <span class="fallback">${(jogo.titulo || '?').charAt(0).toUpperCase()}</span>
+        ${jogo.cover ? `<img src="${jogo.cover}" alt="${jogo.titulo}" loading="lazy" onerror="this.remove()">` : ''}
+        <div class="play"><i>▶</i></div>
+      </div>
+      <div class="info">
+        <h3>${jogo.titulo}</h3>
+        ${jogo.tag ? `<span class="tag">${jogo.tag}</span>` : ''}
+      </div>
+    `;
+
+    card.addEventListener('click', () => abrirJogo(jogo));
+    grid.appendChild(card);
+  });
+}
+
+/* --- Abrir o jogo no embed --- */
+function abrirJogo(jogo){
+  jogoAtual = jogo;
+  modalTit.textContent = jogo.titulo;
+  loader.classList.add('ativo');
+  frame.src = jogo.link;
+  modal.classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+
+/* --- Fechar --- */
+function fecharModal(){
+  modal.classList.remove('aberto');
+  frame.src = 'about:blank';   // para o áudio/vídeo do jogo
+  document.body.style.overflow = '';
+  jogoAtual = null;
+  if(document.fullscreenElement) document.exitFullscreen?.();
+}
+
+/* --- Loader do iframe --- */
+frame.addEventListener('load', () => {
+  if(frame.src !== 'about:blank') loader.classList.remove('ativo');
+});
+
+/* --- Botões do modal --- */
+document.getElementById('btnFechar').addEventListener('click', fecharModal);
+
+document.getElementById('btnRecarregar').addEventListener('click', () => {
+  if(!jogoAtual) return;
+  loader.classList.add('ativo');
+  frame.src = jogoAtual.link;
+});
+
+document.getElementById('btnNovaAba').addEventListener('click', () => {
+  if(jogoAtual) window.open(jogoAtual.link, '_blank', 'noopener');
+});
+
+document.getElementById('btnTelaCheia').addEventListener('click', () => {
+  if(!document.fullscreenElement){
+    (modal.requestFullscreen || modal.webkitRequestFullscreen)?.call(modal);
+  } else {
+    document.exitFullscreen?.();
+  }
+});
+
+/* --- Fechar com ESC --- */
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && modal.classList.contains('aberto')) fecharModal();
+});
+
+/* --- Clique no fundo escuro fecha --- */
+modal.addEventListener('click', e => {
+  if(e.target === modal) fecharModal();
+});
+
+/* --- Busca em tempo real --- */
+busca.addEventListener('input', () => {
+  const termo = busca.value.toLowerCase().trim();
+  const filtrados = JOGOS.filter(j =>
+    j.titulo.toLowerCase().includes(termo) ||
+    (j.tag || '').toLowerCase().includes(termo)
+  );
+  render(filtrados);
+});
+
+/* --- Inicia --- */
+render(JOGOS);
+</script>
+
+</body>
+</html>
